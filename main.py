@@ -1,81 +1,128 @@
-import os
 import cv2
 import numpy as np
+import tensorflow as tf
+from keras.src.callbacks import EarlyStopping
 
-# Загрузка изображения
-# image = cv2.imread('Resources/AI - RTUITLab/Photo/00_08.jpg')
-image = cv2.imread('Resources/AI - RTUITLab/Random Photos/01_05.jpg')
-
-image_itog = image.copy()
-
-# Преобразование изображения в оттенки серого
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-ret, thresh = cv2.threshold(gray, 241, 255, cv2.THRESH_BINARY)
-
-kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-morph = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-morph = cv2.dilate(morph, np.ones((5, 5), np.uint8), iterations=2)
-morph = cv2.erode(morph, np.ones((5, 5), np.uint8), iterations=1)
-
-contours, _ = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-new_contours = []
-for contour in contours:
-    x, y, w, h = cv2.boundingRect(contour)
-    area = cv2.contourArea(contour)
-    aspect_ratio = float(w) / h
-    if aspect_ratio >= 0.35 and 650 < area < 50000:
-        new_contours.append((x, y, w, h, area))
-
-corners = []
-for i in range(len(new_contours)):
-    for j in range(i + 1, len(new_contours)):
-        x11 = new_contours[i][0]
-        x21 = new_contours[j][0]
-        if max(x11, x21) - min(x11, x21) <= 15:
-            y11 = new_contours[i][1]
-            y21 = new_contours[j][1]
-            x12 = x11 + new_contours[i][2]
-            x22 = x21 + new_contours[j][2]
-            y12 = y11 + new_contours[i][3]
-            y22 = y21 + new_contours[j][3]
-            corners.append([(min(x11, x21),
-                             min(y11, y21)),
-                            (max(x12, x22),
-                             max(y12, y22))])
-for i in corners:
-    cv2.rectangle(image, i[0], i[1], (0, 255, 0), 2)
-print(new_contours)
-
-j = 0
-if len(corners) != 4:
-    new_contours.sort(key=lambda x: x[4], reverse=True)
-    for i in range(len(corners), 4):
-        cv2.rectangle(image, (new_contours[j][0], new_contours[j][1])
-                      , (new_contours[j][0] + new_contours[j][2], new_contours[j][1] + new_contours[j][3])
-                      , (0, 255, 0), 2)
-        j += 1
-
-print(new_contours)
-cv2.imshow("new_image", image)
-
-contours, _ = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-digit_images_path = 'digit_images'
-os.makedirs(digit_images_path, exist_ok=True)  # Создание каталога для сохранения вырезанных цифр
-
-for contour in contours:
-    x, y, w, h = cv2.boundingRect(contour)
-    aspect_ratio = float(w) / h
-    area = cv2.contourArea(contour)
-    if aspect_ratio >= 0.35 and 650 < area < 50000:
-        # digit = image[y:y + h, x:x + w]
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        # cv2.imwrite(f'{digit_images_path}/digit_{x}.jpg', digit)
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.models import Sequential
 
 
-cv2.imshow('image', image)
-cv2.imwrite("image123.png", image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+def get_digits(filepath):
+    # Загрузка изображения
+    image = cv2.imread(filepath)
+
+    # Преобразование изображения в оттенки серого
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(gray, 241, 255, cv2.THRESH_BINARY)
+
+    # Применение морфологических изменений
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    morph = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+    morph = cv2.dilate(morph, np.ones((5, 5), np.uint8), iterations=2)
+    morph = cv2.erode(morph, np.ones((5, 5), np.uint8), iterations=1)
+
+    contours, _ = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    new_contours = []
+    digits = []
+    # Поиск подходящих контуров и их координаты
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        area = cv2.contourArea(contour)
+        aspect_ratio = float(w) / h
+        if aspect_ratio >= 0.35 and 650 < area < 30000:
+            new_contours.append((x, y, w, h, area))
+
+    corners = []
+    # Расчет близлежащих контуров
+    for i in range(len(new_contours)):
+        for j in range(i + 1, len(new_contours)):
+            x11 = new_contours[i][0]
+            x21 = new_contours[j][0]
+            if max(x11, x21) - min(x11, x21) <= 12:
+                y11 = new_contours[i][1]
+                y21 = new_contours[j][1]
+                x12 = x11 + new_contours[i][2]
+                x22 = x21 + new_contours[j][2]
+                y12 = y11 + new_contours[i][3]
+                y22 = y21 + new_contours[j][3]
+                corners.append([(min(x11, x21),
+                                 min(y11, y21)),
+                                (max(x12, x22),
+                                 max(y12, y22))])
+
+    j = 0
+    if len(corners) != 4:
+        new_contours.sort(key=lambda x: x[4], reverse=True)
+        for i in range(len(corners), 4):
+            corners.append([(new_contours[j][0], new_contours[j][1]),
+                            (new_contours[j][0] + new_contours[j][2], new_contours[j][1] + new_contours[j][3])])
+            j += 1
+
+    # Обрезка отдельных цифр
+    for i in corners:
+        digits.append(cv2.bitwise_not(morph[i[0][1]:i[1][1], i[0][0]:i[1][0]]))
+
+    return digits
+
+
+def train_model():
+    classes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+    train_data = tf.keras.utils.image_dataset_from_directory("Resources/dataset/train",
+                                                             class_names=classes,
+                                                             validation_split=0.2,
+                                                             subset="training",
+                                                             seed=123,
+                                                             label_mode='categorical',
+                                                             color_mode="grayscale",
+                                                             image_size=(64, 64))
+    val_data = tf.keras.utils.image_dataset_from_directory("Resources/dataset/train",
+                                                           class_names=classes,
+                                                           validation_split=0.2,
+                                                           subset="validation",
+                                                           seed=123,
+                                                           label_mode='categorical',
+                                                           color_mode="grayscale",
+                                                           image_size=(64, 64))
+
+    model = Sequential([
+        keras.Input(shape=(64, 64, 1)),
+        layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
+        layers.MaxPooling2D(pool_size=(2, 2)),
+        layers.Conv2D(64, kernel_size=(3, 3), activation="relu"),
+        layers.MaxPooling2D(pool_size=(2, 2)),  #
+        layers.Flatten(),  #
+        layers.Dense(len(classes), activation="softmax")])
+
+    model.compile(
+        loss="categorical_crossentropy",
+        optimizer="adam",
+        metrics=["accuracy"])
+
+    # callback = EarlyStopping(
+    #     monitor='val_accuracy',
+    #     patience=3,
+    #     min_delta=0.01,
+    #     restore_best_weights=True  # Использование лучших весов модели
+    # )
+    model.fit(
+        train_data,
+        validation_data=val_data,
+        epochs=15)
+    # callbacks=[callback])  # доля данных, отданных на проверку
+
+    score = model.evaluate(train_data, verbose=0)  # оцениваем нашу модель (verbose=0 подавляет вывод на экран)
+    print("Test loss:", score[0])  # функция ошибки на тестовых данных
+    print("Test accuracy:", score[1])  # метрика (из заданных, у нас accuracy) на тестовых данных
+
+    model.save("model.h5")
+    model.save("model.keras")
+
+
+if __name__ == '__main__':
+    # image = cv2.imread('Resources/AI - RTUITLab/Photo/00_08.jpg')
+    # # image = cv2.imread('Resources/AI - RTUITLab/Random Photos/01_05.jpg')
+    model = tf.load_model("model.keras")
+    while True:
+        print("Введите 1 - для ввода пути до файла вручную")

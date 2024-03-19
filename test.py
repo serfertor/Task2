@@ -27,7 +27,7 @@ cv2.waitKey(0)
 
 contours, _ = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-digit_images_path = 'digit_images'
+
 os.makedirs(digit_images_path, exist_ok=True)  # Создание каталога для сохранения вырезанных цифр
 
 for contour in contours:
