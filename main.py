@@ -3,8 +3,8 @@ import cv2
 import numpy as np
 
 # Загрузка изображения
-image = cv2.imread('Resources/AI - RTUITLab/Photo/00_08.jpg')
-# image = cv2.imread('Resources/AI - RTUITLab/Random Photos/01_05.jpg')
+# image = cv2.imread('Resources/AI - RTUITLab/Photo/00_08.jpg')
+image = cv2.imread('Resources/AI - RTUITLab/Random Photos/01_05.jpg')
 
 image_itog = image.copy()
 
@@ -24,15 +24,16 @@ new_contours = []
 for contour in contours:
     x, y, w, h = cv2.boundingRect(contour)
     area = cv2.contourArea(contour)
-    if 500 < area < 50000:
-        new_contours.append((x, y, w, h))
+    aspect_ratio = float(w) / h
+    if aspect_ratio >= 0.35 and 650 < area < 50000:
+        new_contours.append((x, y, w, h, area))
 
 corners = []
 for i in range(len(new_contours)):
     for j in range(i + 1, len(new_contours)):
         x11 = new_contours[i][0]
         x21 = new_contours[j][0]
-        if max (x11, x21) - min(x11, x21) <= 15:
+        if max(x11, x21) - min(x11, x21) <= 15:
             y11 = new_contours[i][1]
             y21 = new_contours[j][1]
             x12 = x11 + new_contours[i][2]
@@ -45,12 +46,24 @@ for i in range(len(new_contours)):
                              max(y12, y22))])
 for i in corners:
     cv2.rectangle(image, i[0], i[1], (0, 255, 0), 2)
+print(new_contours)
 
+j = 0
+if len(corners) != 4:
+    new_contours.sort(key=lambda x: x[4], reverse=True)
+    for i in range(len(corners), 4):
+        cv2.rectangle(image, (new_contours[j][0], new_contours[j][1])
+                      , (new_contours[j][0] + new_contours[j][2], new_contours[j][1] + new_contours[j][3])
+                      , (0, 255, 0), 2)
+        j += 1
+
+print(new_contours)
+cv2.imshow("new_image", image)
 
 contours, _ = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-# digit_images_path = 'digit_images'
-# os.makedirs(digit_images_path, exist_ok=True)  # Создание каталога для сохранения вырезанных цифр
+digit_images_path = 'digit_images'
+os.makedirs(digit_images_path, exist_ok=True)  # Создание каталога для сохранения вырезанных цифр
 
 for contour in contours:
     x, y, w, h = cv2.boundingRect(contour)
@@ -63,5 +76,6 @@ for contour in contours:
 
 
 cv2.imshow('image', image)
+cv2.imwrite("image123.png", image)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
