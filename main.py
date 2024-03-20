@@ -8,7 +8,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 import PIL
 from PIL import Image
-
+from matplotlib import pyplot as plt
 
 def get_digits(filepath):
     # Загрузка изображения
@@ -73,47 +73,61 @@ def get_digits(filepath):
 
 
 def train_model():
-    classes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-    train_data = tf.keras.utils.image_dataset_from_directory("Resources/dataset/train",
-                                                             class_names=classes,
-                                                             seed=123,
-                                                             label_mode='categorical',
-                                                             color_mode="grayscale",
-                                                             image_size=(64, 64))
-    val_data = tf.keras.utils.image_dataset_from_directory("Resources/dataset/validation",
-                                                           class_names=classes,
-                                                           seed=123,
-                                                           label_mode='categorical',
-                                                           color_mode="grayscale",
-                                                           image_size=(64, 64))
+    # Гиперпараметры модели
+    num_classes = 10  # число классов - число цифр
+    input_shape = (28, 28, 1)  # размер изображений цифр, они не цветные, поэтому канал 1.
 
-    model = Sequential([
-        keras.Input(shape=(64, 64, 1)),
-        layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
-        layers.MaxPooling2D(pool_size=(2, 2)),
-        layers.Conv2D(64, kernel_size=(3, 3), activation="relu"),
-        layers.MaxPooling2D(pool_size=(2, 2)),
-        layers.Flatten(),
-        layers.Dense(len(classes), activation="softmax")])
+    # загружаем данные (изображения и их классы), отдельно обучающие и тестовые
+    (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()  #
 
+    # Преобразуем во float и диапазон [0, 1]
+    x_train = x_train.astype("float32") / 255  #
+    x_test = x_test.astype("float32") / 255  #
+
+    x_train = np.expand_dims(x_train, -1)  # для обучающих
+    x_test = np.expand_dims(x_test, -1)  # для тестовых
+
+    # переводим метки классов в унитарные вектора
+    y_train = keras.utils.to_categorical(y_train, num_classes)  # обучающие
+    y_test = keras.utils.to_categorical(y_test, num_classes)  # тестовые
+
+    model = keras.Sequential(  # слои перечисляются ниже
+        [
+            keras.Input(shape=input_shape),
+            layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
+            layers.MaxPooling2D(pool_size=(2, 2)),  #
+            layers.Conv2D(64, kernel_size=(3, 3), activation="relu"),  #
+            layers.MaxPooling2D(pool_size=(2, 2)),  #
+            layers.Flatten(),  #
+            layers.Dense(num_classes, activation="softmax"),  #
+        ]
+    )
+    batch_size = 128  # размер пакета (batch)
+    epochs = 5  # количество эпох обучения
+
+    # задаем функцию ошибки, метод обучения и метрику проверки
     model.compile(
         loss="categorical_crossentropy",
         optimizer="adam",
         metrics=["accuracy"])
 
-    # callback = EarlyStopping(
-    #     monitor='val_accuracy',
-    #     patience=3,
-    #     min_delta=0.01,
-    #     restore_best_weights=True
-    # )
     model.fit(
-        train_data,
-        validation_data=val_data,
-        epochs=10)
-    # callbacks=[callback])
+        x_train,
+        y_train,
+        batch_size=batch_size,
+        epochs=epochs,
+        validation_split=0.1)
 
-    model.save("model.h5")
+    score = model.evaluate(x_test, y_test, verbose=0)
+    print("Test loss:", score[0])  # функция ошибки на тестовых данных
+    print("Test accuracy:", score[1])  # метрика (из заданных, у нас accuracy) на тестовых данных
+
+    test_example = 12  # индекс примера
+    test_input = x_test[test_example:test_example + 1]  # изображение этого примера
+    test_output = np.argmax(model.predict(test_input), axis=-1)
+
+    print('Это цифра', test_output)  # выводим номер класса, он же название цифры
+
     model.save("model.keras")
 
 
@@ -138,9 +152,10 @@ if __name__ == '__main__':
 
 
     img = tf.keras.utils.load_img(
-        "1.jpg", target_size=(64, 64), color_mode="grayscale"
+        "2.jpg", target_size=(28, 28), color_mode="grayscale"
     )
     img_array = tf.keras.utils.img_to_array(img)
+    img_array = img_array / 255.0
     img_array = tf.expand_dims(img_array, 0)  # Create a batch
 
     predictions = model.predict(img_array)

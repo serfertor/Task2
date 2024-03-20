@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="37551ed7-0207-4657-a284-73880147c541" name="Changes" comment="Написана сверточная модель, обучена на датасете kaggle">
+    <list default="true" id="37551ed7-0207-4657-a284-73880147c541" name="Changes" comment="Перед попытко">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -96,7 +95,8 @@
       <option name="presentableId" value="Default" />
       <updated>1710701811394</updated>
       <workItem from="1710701822601" duration="16628000" />
-      <workItem from="1710782144250" duration="38738000" />
+      <workItem from="1710782144250" duration="40250000" />
+      <workItem from="1710957711725" duration="9000" />
     </task>
     <task id="LOCAL-00001" summary="Начало работы, произведена обработка изображения, налажен алгоритм нахождения цифр и их обрезки-сохранения">
       <option name="closed" value="true" />
@@ -138,7 +138,15 @@
       <option name="project" value="LOCAL" />
       <updated>1710866870645</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Перед попытко">
+      <option name="closed" value="true" />
+      <created>1710879151471</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1710879151471</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -149,11 +157,12 @@
     <MESSAGE value="Выделены и получены координаты отдельных цифр" />
     <MESSAGE value="Исправлен функционал поиска отдельных цифр" />
     <MESSAGE value="Написана сверточная модель, обучена на датасете kaggle" />
-    <option name="LAST_COMMIT_MESSAGE" value="Написана сверточная модель, обучена на датасете kaggle" />
+    <MESSAGE value="Перед попытко" />
+    <option name="LAST_COMMIT_MESSAGE" value="Перед попытко" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Task2$test.coverage" NAME="test Coverage Results" MODIFIED="1710802888473" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Task2$main.coverage" NAME="main Coverage Results" MODIFIED="1710878988289" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Task2$main.coverage" NAME="main Coverage Results" MODIFIED="1710881642318" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Task2$test_hsv.coverage" NAME="test_hsv Coverage Results" MODIFIED="1710712572438" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
